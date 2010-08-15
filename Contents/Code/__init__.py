@@ -1,8 +1,4 @@
 import re, string, urllib
-from PMS import *
-from PMS.Objects import *
-from PMS.Shortcuts import *
-from PMS.Datetime import *
 
 ####################################################################################################
 
@@ -58,7 +54,7 @@ def MainMenu(cacheUpdate=False):
   dir.Append(WebVideoItem(TWIT_LIVE, 'TWiT Live', summary="In May, 2008 Leo Laporte started broadcasting live video from the TWiT Cottage in Petaluma, CA. This video allows viewers to watch the creation process of all of the TWiT netcasts and enables them to interact with Leo through one of the associated chats. Originally, the video was broadcast on both the ustream.tv and Stickam video services, but is now broadcast entirely over Stickam at live.TWiT.tv", duration='', thumb=R('icon-twitlive.png'), subtitle=''))
 
 
-  page = XML.ElementFromURL(TWIT_FRONTPAGE + '/', isHTML=True, cacheTime=CACHE_FRONTPAGE_INTERVAL)
+  page = HTML.ElementFromURL(TWIT_FRONTPAGE + '/', cacheTime=CACHE_FRONTPAGE_INTERVAL)
 
   shows = page.xpath("//div[@id='block-menu-menu-our-shows']/div[@class='content']/ul[@class='menu']/li")
 
@@ -72,7 +68,7 @@ def MainMenu(cacheUpdate=False):
       showUrl = TWIT_FRONTPAGE + showUrl
 
     # Pull the show page down so we can get the shows image
-    showPage = XML.ElementFromURL(showUrl, isHTML=True, cacheTime=CACHE_SHOWPAGE_INTERVAL)
+    showPage = HTML.ElementFromURL(showUrl, cacheTime=CACHE_SHOWPAGE_INTERVAL)
     showImage = showPage.xpath("//div[@class='podcast']/img")[0].get('src')
 
     dir.Append(Function(DirectoryItem(ShowBrowser, title=showName, summary=showName, subtitle='', thumb=showImage), showName=showName, showUrl=showUrl))
@@ -94,7 +90,7 @@ def ShowBrowser(sender, showName, showUrl):
 
   # Find link to best quality RSS feed from show page.
 
-  showPage = XML.ElementFromURL(showUrl, isHTML=True, cacheTime=CACHE_SHOWPAGE_INTERVAL)
+  showPage = HTML.ElementFromURL(showUrl, cacheTime=CACHE_SHOWPAGE_INTERVAL)
 
   feedOptions = showPage.xpath("//div[@class='podcast']/select/option");
   feedUrl = ''
@@ -112,7 +108,7 @@ def ShowBrowser(sender, showName, showUrl):
     if feedOptionName == 'RSS' or feedOptionName == 'AAC Version: RSS' or feedOptionName == 'RSS (Desktop version)':
       feedUrl = feedOptionUrl
 
-  feed = XML.ElementFromURL(feedUrl, isHTML=False, cacheTime=CACHE_RSS_FEED_INTERVAL)
+  feed = XML.ElementFromURL(feedUrl, cacheTime=CACHE_RSS_FEED_INTERVAL)
 
   feedMetadata = feed.xpath("//channel")[0]
   feedImage = feedMetadata.xpath("./itunes:image", namespaces=ITUNES_NAMESPACE)[0].get('href')
@@ -125,7 +121,7 @@ def ShowBrowser(sender, showName, showUrl):
 
     # Set the subtitle to the date
     episodeDate = str(episode.xpath("./pubDate/text()")[0])
-    episodeDate = ParseDate(episodeDate)
+    episodeDate = Datetime.ParseDate(episodeDate)
     episodeLocalDate = episodeDate
     episodeSubtitle = episodeLocalDate.strftime(DATE_FORMAT)
 
@@ -200,7 +196,7 @@ def MainMenuOdtv(sender, cacheUpdate=False):
   dir.title2 = L('odtv')
   dir.art = R('art-odtv.png')
 
-  page = XML.ElementFromURL(ODTV_FRONTPAGE, isHTML=True, cacheTime=CACHE_FRONTPAGE_INTERVAL)
+  page = HTML.ElementFromURL(ODTV_FRONTPAGE, cacheTime=CACHE_FRONTPAGE_INTERVAL)
 
   shows = page.xpath("//select[@name='cat']/option")
 
@@ -234,7 +230,7 @@ def ShowBrowserOdtv(sender,showName, shortCode):
   dir.viewGroup = 'Details'
   dir.art = R('art-odtv.png')
 
-  feed = XML.ElementFromURL(ODTV_RSS_FEED+shortCode, isHTML=False, cacheTime=CACHE_RSS_FEED_INTERVAL)
+  feed = XML.ElementFromURL(ODTV_RSS_FEED+shortCode, cacheTime=CACHE_RSS_FEED_INTERVAL)
 
   episodes = feed.xpath("//item")
 
@@ -248,7 +244,7 @@ def ShowBrowserOdtv(sender,showName, shortCode):
     description = episode.xpath("./description/text()")[0]
 
     episodeDate = str(episode.xpath("./pubDate/text()")[0])
-    episodeDate = ParseDate(episodeDate)
+    episodeDate = Datetime.ParseDate(episodeDate)
     episodeLocalDate = episodeDate
 
     subtitle = episodeLocalDate.strftime(DATE_FORMAT)
