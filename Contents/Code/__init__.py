@@ -1,45 +1,43 @@
-import re, string, urllib
+import re, urllib
 
 ####################################################################################################
 
-TWIT_VIDEO_PREFIX                    = "/video/twittv"
-TWIT_MUSIC_PREFIX                    = "/music/twittv"
+TWIT_VIDEO_PREFIX        = "/video/twittv"
+TWIT_MUSIC_PREFIX        = "/music/twittv"
 
-TWIT_FRONTPAGE                       = "http://twit.tv" # Do not append a trailing slash
-TWIT_LIVE                            = "http://live.twit.tv/"
+TWIT_FRONTPAGE           = "http://twit.tv" # Do not append a trailing slash
+TWIT_LIVE                = "http://live.twit.tv/"
 
-ODTV_FRONTPAGE                       = "http://odtv.me/"
-ODTV_CATEGORY_REDIRECT               = "http://odtv.me/?cat="
-ODTV_RSS_FEED                        = "http://odtv.me/?feed=rss2&category_name="
+ITUNES_NAMESPACE         = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
 
-ITUNES_NAMESPACE                     = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
+DATE_FORMAT              = '%a, %d %b %Y'
 
-DATE_FORMAT                          = '%a, %d %b %Y'
+DEBUG_XML_RESPONSE       = False
+CACHE_INTERVAL           = 3600
+CACHE_FRONTPAGE_INTERVAL = 172800
+CACHE_SHOWPAGE_INTERVAL  = 172800
+CACHE_RSS_FEED_INTERVAL  = 3600
 
-DEBUG_XML_RESPONSE		     = False
-CACHE_INTERVAL                       = 3600
-CACHE_FRONTPAGE_INTERVAL             = 172800
-CACHE_SHOWPAGE_INTERVAL              = 172800
-CACHE_RSS_FEED_INTERVAL              = 3600
+ICON = "icon-default.png"
+ART = "art-default.jpg"
 
 ####################################################################################################
 
 def Start():
-  Plugin.AddPrefixHandler(TWIT_VIDEO_PREFIX, MainMenu, L("twit"), "icon-default.png", "art-default.png")
-  Plugin.AddPrefixHandler(TWIT_MUSIC_PREFIX, MainMenu, L("twit"), "icon-default.png", "art-default.png")
+  Plugin.AddPrefixHandler(TWIT_VIDEO_PREFIX, MainMenu, L("twit"), ICON, ART)
+  Plugin.AddPrefixHandler(TWIT_MUSIC_PREFIX, MainMenu, L("twit"), ICON, ART)
 
   Plugin.AddViewGroup("Details", viewMode="InfoList", mediaType="items")
   MediaContainer.content = 'Items'
   MediaContainer.title1 = L("twit")
-  MediaContainer.art = R('art-default.png')
-  HTTP.SetCacheTime(CACHE_INTERVAL)
+  MediaContainer.art = R(ART)
+  DirectoryItem.thumb = R(ICON)
+  HTTP.CacheTime = CACHE_INTERVAL
 
 def UpdateCache():
   HTTP.Request(TWIT_FRONTPAGE, cacheTime=CACHE_FRONTPAGE_INTERVAL)
-  HTTP.Request(ODTV_FRONTPAGE, cacheTime=CACHE_FRONTPAGE_INTERVAL)
   # Request the MainMenu's to cache the show pages
   MainMenu(cacheUpdate=True)
-  MainMenuOdtv(False, cacheUpdate=True)
 
 def MainMenu(cacheUpdate=False):
 
@@ -47,11 +45,10 @@ def MainMenu(cacheUpdate=False):
   # Show available shows
 
   dir = MediaContainer()
-  dir.art = R('art-default.png')
 
   # Add TWiT Live entry
 
-  dir.Append(WebVideoItem(TWIT_LIVE, 'TWiT Live', summary="In May, 2008 Leo Laporte started broadcasting live video from the TWiT Cottage in Petaluma, CA. This video allows viewers to watch the creation process of all of the TWiT netcasts and enables them to interact with Leo through one of the associated chats. Originally, the video was broadcast on both the ustream.tv and Stickam video services, but is now broadcast entirely over Stickam at live.TWiT.tv", duration='', thumb=R('icon-twitlive.png'), subtitle=''))
+  dir.Append(WebVideoItem(TWIT_LIVE, title='TWiT Live', summary="In May, 2008 Leo Laporte started broadcasting live video from the TWiT Cottage in Petaluma, CA. This video allows viewers to watch the creation process of all of the TWiT netcasts and enables them to interact with Leo through one of the associated chats. Originally, the video was broadcast on both the ustream.tv and Stickam video services, but is now broadcast entirely over Stickam at live.TWiT.tv", thumb=R('icon-twitlive.png')))
 
 
   page = HTML.ElementFromURL(TWIT_FRONTPAGE + '/', cacheTime=CACHE_FRONTPAGE_INTERVAL)
@@ -71,22 +68,16 @@ def MainMenu(cacheUpdate=False):
     showPage = HTML.ElementFromURL(showUrl, cacheTime=CACHE_SHOWPAGE_INTERVAL)
     showImage = showPage.xpath("//div[@class='podcast']/img")[0].get('src')
 
-    dir.Append(Function(DirectoryItem(ShowBrowser, title=showName, summary=showName, subtitle='', thumb=showImage), showName=showName, showUrl=showUrl))
-
-  # Append a link for 'odtv' to the 'twit' showlist
-  dir.Append(Function(DirectoryItem(MainMenuOdtv, title='oDTV : on-Demand TWiT Video', summary='on-Demand TWiT Video', subtitle='', thumb=R('icon-odtv.png'), art=R('art-odtv.png'))))
-
+    dir.Append(Function(DirectoryItem(ShowBrowser, title=showName, summary=showName, thumb=Function(GetThumb, url=showImage)), showName=showName, showUrl=showUrl))
 
   if DEBUG_XML_RESPONSE and not cacheUpdate:
-    PMS.Log(dir.Content())
+    Log(dir.Content())
   return dir
 
 
 def ShowBrowser(sender, showName, showUrl):
 
-  dir = MediaContainer()
-  dir.title2 = showName
-  dir.viewGroup = 'Details'
+  dir = MediaContainer(title2=showName, viewGroup='Details')
 
   # Find link to best quality RSS feed from show page.
 
@@ -178,82 +169,14 @@ def ShowBrowser(sender, showName, showUrl):
     episodeSubtitle += " [ " + fileType + " ] "
 
     if mediaType == 'audio':
-      item = TrackItem(episodeUrl, episodeTitle, artist=showName, album=showName, summary=episodeDescription, subtitle=episodeSubtitle, duration=episodeLength, thumb=episodeImage)
+      item = TrackItem(episodeUrl, title=episodeTitle, artist=showName, album=showName, summary=episodeDescription, subtitle=episodeSubtitle, duration=episodeLength, thumb=Function(GetThumb, url=episodeImage))
     else:
-      item = VideoItem(episodeUrl, episodeTitle, episodeSubtitle, episodeDescription, episodeLength, thumb=episodeImage)
+      item = VideoItem(episodeUrl, title=episodeTitle, subtitle=episodeSubtitle, summary=episodeDescription, duration=episodeLength, thumb=Function(GetThumb, url=episodeImage))
 
     dir.Append(item)
 
   if DEBUG_XML_RESPONSE:
-    PMS.Log(dir.Content())
-  return dir
-
-
-def MainMenuOdtv(sender, cacheUpdate=False):
-
-  dir = MediaContainer()
-  dir.title1 = L('twit')
-  dir.title2 = L('odtv')
-  dir.art = R('art-odtv.png')
-
-  page = HTML.ElementFromURL(ODTV_FRONTPAGE, cacheTime=CACHE_FRONTPAGE_INTERVAL)
-
-  shows = page.xpath("//select[@name='cat']/option")
-
-  for show in shows:
-    # For each show we need to find the shows 'short name'
-    showId = show.get('value')
-    if int(showId) > 0:
-     # showName = TidyString(show.xpath('./text()')[0])
-      showName = re.search(r'(.*)\s*\(', show.xpath('./text()')[0]).group(1)
-      showName = TidyString(showName)
-      # We need the 'short name' for the show, we may already have this in the dictionary
-      if Dict.HasKey("shortcode-"+showId):
-        showShortCode = Dict.Get("shortcode-"+showId)
-      else:
-        # We need to pull the referenced page and see where it redirects to to get the 'short name'
-        showPage = urllib.urlopen(ODTV_CATEGORY_REDIRECT+showId)
-        showShortCode = re.search( r'category/([^/]+)/', str(showPage.geturl())).group(1)
-        Dict.Set("shortcode-"+showId, showShortCode)
-
-      dir.Append(Function(DirectoryItem(ShowBrowserOdtv, title=showName, summary=showName, subtitle='', thumb=R('icon-odtv.png')), showName=showName, shortCode=showShortCode))
-
-  if DEBUG_XML_RESPONSE and not cacheUpdate:
-    PMS.Log(dir.Content())
-  return dir
-
-def ShowBrowserOdtv(sender,showName, shortCode):
-
-  dir = MediaContainer()
-  dir.title1 = L('odtv')
-  dir.title2 = showName
-  dir.viewGroup = 'Details'
-  dir.art = R('art-odtv.png')
-
-  feed = XML.ElementFromURL(ODTV_RSS_FEED+shortCode, cacheTime=CACHE_RSS_FEED_INTERVAL)
-
-  episodes = feed.xpath("//item")
-
-  for episode in episodes:
-
-    # Check we have an enclosure
-    if len(episode.xpath("./enclosure")) == 0:
-      continue
-    url = episode.xpath("./enclosure")[0].get('url')
-    title = episode.xpath("./title/text()")[0]
-    description = episode.xpath("./description/text()")[0]
-
-    episodeDate = str(episode.xpath("./pubDate/text()")[0])
-    episodeDate = Datetime.ParseDate(episodeDate)
-    episodeLocalDate = episodeDate
-
-    subtitle = episodeLocalDate.strftime(DATE_FORMAT)
-
-    video = VideoItem(url, title, subtitle, description, 0, thumb=R('icon-odtv.png'))
-    dir.Append(video)
-
-  if DEBUG_XML_RESPONSE:
-    PMS.Log(dir.Content())
+    Log(dir.Content())
   return dir
 
 
@@ -271,3 +194,10 @@ def TidyString(stringToTidy):
   else:
     return ''
 
+
+def GetThumb(url):
+  try:
+    data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
+    return DataObject(data, 'image/jpeg')
+  except:
+    return Redirect(R(ICON))

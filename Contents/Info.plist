@@ -18,7 +18,8 @@
 	<string>1.0</string>
 	<key>PlexAudioCodec</key>
 	<array>
-		<string>AAC/MP3</string>
+		<string>AAC</string>
+		<string>MP3</string>
 	</array>
 	<key>PlexClientPlatforms</key>
 	<string>MacOSX,LGTV</string>
@@ -27,16 +28,10 @@
 	<key>PlexMediaContainer</key>
 	<array>
 		<string>MP4</string>
+		<string>MP3</string>
 	</array>
-	<key>PlexPluginDebug</key>
-	<string>1</string>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
-	<key>PlexPluginPrefixes</key>
-	<array>
-		<string>/video/twittv</string>
-		<string>/music/twittv</string>
-	</array>
 	<key>PlexVideoCodec</key>
 	<array>
 		<string>H.264</string>
