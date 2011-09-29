@@ -1,4 +1,4 @@
-import re, urllib
+import re
 
 ####################################################################################################
 
@@ -23,23 +23,24 @@ ICON = "icon-default.png"
 ART = "art-default.jpg"
 
 ####################################################################################################
-
 def Start():
-  Plugin.AddPrefixHandler(TWIT_VIDEO_PREFIX, MainMenu, L("twit"), ICON, ART)
-  Plugin.AddPrefixHandler(TWIT_MUSIC_PREFIX, MainMenu, L("twit"), ICON, ART)
+  Plugin.AddPrefixHandler(TWIT_VIDEO_PREFIX, MainMenu, "TWiT.TV", ICON, ART)
+  Plugin.AddPrefixHandler(TWIT_MUSIC_PREFIX, MainMenu, "TWiT.TV", ICON, ART)
 
   Plugin.AddViewGroup("Details", viewMode="InfoList", mediaType="items")
-  MediaContainer.content = 'Items'
-  MediaContainer.title1 = L("twit")
+  MediaContainer.content = "Items"
+  MediaContainer.title1 = "TWiT.TV"
   MediaContainer.art = R(ART)
   DirectoryItem.thumb = R(ICON)
   HTTP.CacheTime = CACHE_INTERVAL
 
+####################################################################################################
 def UpdateCache():
   HTTP.Request(TWIT_LISTPAGE, cacheTime=CACHE_LISTPAGE_INTERVAL)
   # Request the MainMenu's to cache the show pages
   MainMenu(cacheUpdate=True)
 
+####################################################################################################
 def MainMenu(cacheUpdate=False):
 
   # Top level menu
@@ -84,7 +85,7 @@ def MainMenu(cacheUpdate=False):
     Log(dir.Content())
   return dir
 
-
+####################################################################################################
 def ShowBrowser(sender, showName, showUrl):
 
   dir = MediaContainer(title2=showName, viewGroup='Details')
@@ -189,7 +190,7 @@ def ShowBrowser(sender, showName, showUrl):
     Log(dir.Content())
   return dir
 
-
+####################################################################################################
 def TidyString(stringToTidy):
   # Function to tidy up strings works ok with unicode, 'strip' seems to have issues in some cases so we use a regex
   if stringToTidy:
@@ -204,7 +205,7 @@ def TidyString(stringToTidy):
   else:
     return ''
 
-
+####################################################################################################
 def GetThumb(url):
   try:
     data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
