@@ -191,21 +191,6 @@ def ShowBrowser(sender, showName, showUrl):
   return dir
 
 ####################################################################################################
-def TidyString(stringToTidy):
-  # Function to tidy up strings works ok with unicode, 'strip' seems to have issues in some cases so we use a regex
-  if stringToTidy:
-    # Strip new lines
-    stringToTidy = re.sub(r'\n', r' ', stringToTidy)
-    # Strip leading / trailing spaces
-    stringSearch = re.search(r'^\s*(\S.*?\S?)\s*$', stringToTidy)
-    if stringSearch == None: 
-      return ''
-    else:
-      return stringSearch.group(1)
-  else:
-    return ''
-
-####################################################################################################
 def GetThumb(url):
   try:
     data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
