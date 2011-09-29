@@ -27,10 +27,11 @@ def Start():
   Plugin.AddPrefixHandler(TWIT_VIDEO_PREFIX, MainMenu, "TWiT.TV", ICON, ART)
   Plugin.AddPrefixHandler(TWIT_MUSIC_PREFIX, MainMenu, "TWiT.TV", ICON, ART)
 
-  Plugin.AddViewGroup("Details", viewMode="InfoList", mediaType="items")
+  Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
   MediaContainer.content = "Items"
   MediaContainer.title1 = "TWiT.TV"
   MediaContainer.art = R(ART)
+  MediaContainer.viewGroup = "InfoList"
   DirectoryItem.thumb = R(ICON)
   HTTP.CacheTime = CACHE_INTERVAL
 
@@ -88,7 +89,7 @@ def MainMenu(cacheUpdate=False):
 ####################################################################################################
 def ShowBrowser(sender, showName, showUrl):
 
-  dir = MediaContainer(title2=showName, viewGroup='Details')
+  dir = MediaContainer(title2=showName)
 
   # Find link to best quality RSS feed from show page.
 
