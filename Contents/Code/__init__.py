@@ -13,7 +13,6 @@ ITUNES_NAMESPACE         = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd
 
 DATE_FORMAT              = '%a, %d %b %Y'
 
-DEBUG_XML_RESPONSE       = False
 CACHE_INTERVAL           = 3600
 CACHE_LISTPAGE_INTERVAL  = 172800
 CACHE_SHOWPAGE_INTERVAL  = 172800
@@ -52,38 +51,44 @@ def MainMenu(cacheUpdate=False):
   # Add TWiT Live entry
   dir.Append(WebVideoItem(TWIT_LIVE, title='TWiT Live', summary="In May, 2008 Leo Laporte started broadcasting live video from the TWiT Brick House in Petaluma, CA. This video allows viewers to watch the creation process of all of the TWiT netcasts and enables them to interact with Leo through one of the associated chats.", thumb=R('icon-twitlive.png')))
 
-  page = HTML.ElementFromURL(TWIT_LISTPAGE + '/', cacheTime=CACHE_LISTPAGE_INTERVAL)
+  resultDict = {}
 
-  shows = page.xpath("//li/span[@class='views-field views-field-title']//a")
+  @parallelize
+  def GetShows():
+    page = HTML.ElementFromURL(TWIT_LISTPAGE + '/', cacheTime=CACHE_LISTPAGE_INTERVAL)
+    shows = page.xpath("//li/span[@class='views-field views-field-title']//a")
 
-  for show in shows:
+    for num in range(len(shows)):
+      show = shows[num]
 
-    showName = str(show.xpath("./text()")[0]);
+      @task
+      def GetShow(num=num, resultDict=resultDict, show=show):
+        showName = str(show.xpath("./text()")[0]);
 
-    # Add TWIT_FRONTPAGE to the beginning of the link if it's not there
-    showUrl = show.xpath(".")[0].get('href')
-    if showUrl.count(TWIT_FRONTPAGE) == 0:
-      showUrl = TWIT_FRONTPAGE + showUrl
+        # Add TWIT_FRONTPAGE to the beginning of the link if it's not there
+        showUrl = show.xpath(".")[0].get('href')
+        if showUrl.count(TWIT_FRONTPAGE) == 0:
+          showUrl = TWIT_FRONTPAGE + showUrl
 
-    # Pull the show page down
-    showPage = HTML.ElementFromURL(showUrl, cacheTime=CACHE_SHOWPAGE_INTERVAL)
+        # Pull the show page down
+        showPage = HTML.ElementFromURL(showUrl, cacheTime=CACHE_SHOWPAGE_INTERVAL)
     
-    # Make sure the page has feeds
-    if not showPage.xpath("//div[@class='sources-dropdown']//option[text() and @value!=0]"):
-        continue
-    
-    # Get the show image
-    showImage = showPage.xpath("//div[@class='views-field views-field-field-cover-art-fid']/span/img")
-    if showImage:
-      showImage=showImage[0].get('src')
-    else:
-      # Default to the TWiT thumb if not found
-      showImage=DirectoryItem.thumb
+        # Make sure the page has feeds
+        if showPage.xpath("//div[@class='sources-dropdown']//option[text() and @value!=0]"):
+          # Get the show image
+          showImage = showPage.xpath("//div[@class='views-field views-field-field-cover-art-fid']/span/img")
+          if showImage:
+            showImage = showImage[0].get('src')
+          else:
+            showImage = None
 
-    dir.Append(Function(DirectoryItem(ShowBrowser, title=showName, summary=showName, thumb=showImage), showName=showName, showUrl=showUrl))
+          resultDict[num] = DirectoryItem(key=Function(ShowBrowser, showName=showName, showUrl=showUrl), title=showName, summary=showName, thumb=Function(GetThumb, url=showImage))
 
-  if DEBUG_XML_RESPONSE and not cacheUpdate:
-    Log(dir.Content())
+  keys = resultDict.keys()
+  keys.sort()
+  for key in keys:
+    dir.Append(resultDict[key])
+
   return dir
 
 ####################################################################################################
@@ -187,14 +192,15 @@ def ShowBrowser(sender, showName, showUrl):
 
     dir.Append(item)
 
-  if DEBUG_XML_RESPONSE:
-    Log(dir.Content())
   return dir
 
 ####################################################################################################
 def GetThumb(url):
-  try:
-    data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
-    return DataObject(data, 'image/jpeg')
-  except:
-    return Redirect(R(ICON))
+  if url:
+    try:
+      data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
+      return DataObject(data, 'image/jpeg')
+    except:
+      pass
+
+  return Redirect(R(ICON))
