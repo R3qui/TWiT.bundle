@@ -6,6 +6,7 @@ TWIT_VIDEO_PREFIX        = "/video/twittv"
 TWIT_MUSIC_PREFIX        = "/music/twittv"
 
 TWIT_FRONTPAGE           = "http://twit.tv" # Do not append a trailing slash
+TWIT_LISTPAGE            = "http://twit.tv/shows"
 TWIT_LIVE                = "http://live.twit.tv/"
 
 ITUNES_NAMESPACE         = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
@@ -14,7 +15,7 @@ DATE_FORMAT              = '%a, %d %b %Y'
 
 DEBUG_XML_RESPONSE       = False
 CACHE_INTERVAL           = 3600
-CACHE_FRONTPAGE_INTERVAL = 172800
+CACHE_LISTPAGE_INTERVAL  = 172800
 CACHE_SHOWPAGE_INTERVAL  = 172800
 CACHE_RSS_FEED_INTERVAL  = 3600
 
@@ -35,7 +36,7 @@ def Start():
   HTTP.CacheTime = CACHE_INTERVAL
 
 def UpdateCache():
-  HTTP.Request(TWIT_FRONTPAGE, cacheTime=CACHE_FRONTPAGE_INTERVAL)
+  HTTP.Request(TWIT_LISTPAGE, cacheTime=CACHE_LISTPAGE_INTERVAL)
   # Request the MainMenu's to cache the show pages
   MainMenu(cacheUpdate=True)
 
@@ -47,28 +48,37 @@ def MainMenu(cacheUpdate=False):
   dir = MediaContainer()
 
   # Add TWiT Live entry
+  dir.Append(WebVideoItem(TWIT_LIVE, title='TWiT Live', summary="In May, 2008 Leo Laporte started broadcasting live video from the TWiT Brick House in Petaluma, CA. This video allows viewers to watch the creation process of all of the TWiT netcasts and enables them to interact with Leo through one of the associated chats.", thumb=R('icon-twitlive.png')))
 
-  dir.Append(WebVideoItem(TWIT_LIVE, title='TWiT Live', summary="In May, 2008 Leo Laporte started broadcasting live video from the TWiT Cottage in Petaluma, CA. This video allows viewers to watch the creation process of all of the TWiT netcasts and enables them to interact with Leo through one of the associated chats. Originally, the video was broadcast on both the ustream.tv and Stickam video services, but is now broadcast entirely over Stickam at live.TWiT.tv", thumb=R('icon-twitlive.png')))
+  page = HTML.ElementFromURL(TWIT_LISTPAGE + '/', cacheTime=CACHE_LISTPAGE_INTERVAL)
 
-
-  page = HTML.ElementFromURL(TWIT_FRONTPAGE + '/', cacheTime=CACHE_FRONTPAGE_INTERVAL)
-
-  shows = page.xpath("//div[@id='block-menu-menu-our-shows']/div[@class='content']/ul[@class='menu']/li")
+  shows = page.xpath("//li/span[@class='views-field views-field-title']//a")
 
   for show in shows:
 
-    showName = str(show.xpath("./a/text()")[0]);
+    showName = str(show.xpath("./text()")[0]);
 
-    # Sometimes the link to the page already contains TWIT_FRONTPAGE, sometimes not
-    showUrl = show.xpath("./a")[0].get('href')
+    # Add TWIT_FRONTPAGE to the beginning of the link if it's not there
+    showUrl = show.xpath(".")[0].get('href')
     if showUrl.count(TWIT_FRONTPAGE) == 0:
       showUrl = TWIT_FRONTPAGE + showUrl
 
-    # Pull the show page down so we can get the shows image
+    # Pull the show page down
     showPage = HTML.ElementFromURL(showUrl, cacheTime=CACHE_SHOWPAGE_INTERVAL)
-    showImage = showPage.xpath("//div[@class='podcast']/img")[0].get('src')
+    
+    # Make sure the page has feeds
+    if not showPage.xpath("//div[@class='sources-dropdown']//option[text() and @value!=0]"):
+        continue
+    
+    # Get the show image
+    showImage = showPage.xpath("//div[@class='views-field views-field-field-cover-art-fid']/span/img")
+    if showImage:
+      showImage=showImage[0].get('src')
+    else:
+      # Default to the TWiT thumb if not found
+      showImage=DirectoryItem.thumb
 
-    dir.Append(Function(DirectoryItem(ShowBrowser, title=showName, summary=showName, thumb=Function(GetThumb, url=showImage)), showName=showName, showUrl=showUrl))
+    dir.Append(Function(DirectoryItem(ShowBrowser, title=showName, summary=showName, thumb=showImage), showName=showName, showUrl=showUrl))
 
   if DEBUG_XML_RESPONSE and not cacheUpdate:
     Log(dir.Content())
@@ -83,21 +93,21 @@ def ShowBrowser(sender, showName, showUrl):
 
   showPage = HTML.ElementFromURL(showUrl, cacheTime=CACHE_SHOWPAGE_INTERVAL)
 
-  feedOptions = showPage.xpath("//div[@class='podcast']/select/option");
+  feedOptions = showPage.xpath("//div[@class='sources-dropdown']//option[text()]");
   feedUrl = ''
 
   for feedOption in feedOptions:
 
-    # We want to match these feed types, fortunately the best quality ones are found last in the list
-    # RSS
-    # AAC Version: RSS
-    # RSS (Desktop version)
-
     feedOptionName = str(feedOption.xpath("./text()")[0])
     feedOptionUrl= feedOption.get('value')
 
-    if feedOptionName == 'RSS' or feedOptionName == 'AAC Version: RSS' or feedOptionName == 'RSS (Desktop version)':
+    # Match feeds with "RSS" in the name
+    if 'RSS' in feedOptionName:
       feedUrl = feedOptionUrl
+
+      # The first match with "video" in the URL (if any) should be higher quality
+      if 'video' in feedOptionUrl:
+        break
 
   feed = XML.ElementFromURL(feedUrl, cacheTime=CACHE_RSS_FEED_INTERVAL)
 
