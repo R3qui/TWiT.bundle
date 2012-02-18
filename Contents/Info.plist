@@ -28,6 +28,8 @@
 		<string>MP4</string>
 		<string>MP3</string>
 	</array>
+	<key>PlexClientPlatforms</key>
+	<string>*</string>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
 	<key>PlexVideoCodec</key>
