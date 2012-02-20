@@ -13,7 +13,7 @@ ART = "art-default.jpg"
 def Start():
 
 	Plugin.AddPrefixHandler("/video/twittv", MainMenuVideo, "TWiT.TV", ICON, ART)
-	Plugin.AddPrefixHandler("/music/twittv", MainMenuAudio, "TWiT.TV", ICON, ART)
+#	Plugin.AddPrefixHandler("/music/twittv", MainMenuAudio, "TWiT.TV", ICON, ART)
 
 	Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
 	Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
@@ -38,7 +38,7 @@ def MainMenuVideo():
 
 		if video_feed != '':
 			show_abbr = video_feed.split('.tv/',1)[1].split('_',1)[0]
-			oc.add(DirectoryObject(key=Callback(Show, title=title, url=video_feed, show_abbr=show_abbr), title=title, thumb=Callback(Cover, url=cover, media='video', show_abbr=show_abbr)))
+			oc.add(DirectoryObject(key=Callback(Show, title=title, url=video_feed, show_abbr=show_abbr, cover=cover, media='video'), title=title, thumb=Callback(Cover, url=cover, media='video', show_abbr=show_abbr)))
 
 	return oc
 
@@ -56,12 +56,12 @@ def MainMenuAudio():
 			else:
 				show_abbr = 'twit'
 
-			oc.add(DirectoryObject(key=Callback(Show, title=title, url=audio_feed), title=title, thumb=Callback(Cover, url=cover, media='audio', show_abbr=show_abbr)))
+			oc.add(DirectoryObject(key=Callback(Show, title=title, url=audio_feed, show_abbr=show_abbr, cover=cover, media='audio'), title=title, thumb=Callback(Cover, url=cover, media='audio', show_abbr=show_abbr)))
 
 	return oc
 
 ####################################################################################################
-def Show(title, url, show_abbr):
+def Show(title, url, show_abbr, cover, media):
 
 	oc = ObjectContainer(title2=title, view_group='InfoList')
 
@@ -69,10 +69,17 @@ def Show(title, url, show_abbr):
 		title = episode.xpath('./title')[0].text
 		episode_number = re.search('\s([0-9]+)(:|$)', title).group(1)
 		url = 'http://twit.tv/%s%s' % (show_abbr, episode_number)
+		summary = episode.xpath('./itunes:subtitle', namespaces=ITUNES_NAMESPACE)[0].text
+		date = episode.xpath('./pubDate')[0].text
+		duration = episode.xpath('./itunes:duration', namespaces=ITUNES_NAMESPACE)[0].text
 
 		oc.add(VideoClipObject(
 			url = url,
-			title = title
+			title = title,
+			summary = summary,
+			originally_available_at = Datetime.ParseDate(date).date(),
+			duration = TimeToMs(duration),
+			thumb = Callback(Cover, url=cover, media=media, show_abbr=show_abbr)
 		))
 
 	return oc
@@ -91,3 +98,19 @@ def Cover(url, media, show_abbr):
 			pass
 
 	return Redirect(R(ICON))
+
+####################################################################################################
+def TimeToMs(timecode):
+
+	seconds = 0
+
+	try:
+		duration = timecode.split(':')
+		duration.reverse()
+
+		for i in range(0, len(duration)):
+			seconds += int(duration[i]) * (60**i)
+	except:
+		pass
+
+	return seconds * 1000
