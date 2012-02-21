@@ -1,6 +1,5 @@
 import re
 
-TWIT_LIVE = "http://live.twit.tv/"
 SHOWS_XML = "http://static.twit.tv/rssFeeds.plist"
 ITUNES_NAMESPACE = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
 COVER_URL = 'http://leoville.tv/podcasts/coverart/%s600%s.jpg'
@@ -31,7 +30,11 @@ def MainMenuVideo():
 	oc = ObjectContainer()
 
 	# Add TWiT Live entry
-	oc.add(VideoClipObject(key=WebVideoURL(TWIT_LIVE), rating_key=TWIT_LIVE, title="TWiT Live", thumb=R('icon-twitlive.png')))
+	oc.add(VideoClipObject(
+		url = "twit://livestream",
+		title = "TWiT Live",
+		thumb = R('icon-twitlive.png')
+	))
 
 	for feed in XML.ElementFromURL(SHOWS_XML, cacheTime=CACHE_1WEEK).xpath('//array/string'):
 		(title, video_feed, audio_feed, cover, x) = feed.text.split('|',4)
