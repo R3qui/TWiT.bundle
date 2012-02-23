@@ -2,7 +2,7 @@ import re
 
 SHOWS_XML = "http://static.twit.tv/rssFeeds.plist"
 ITUNES_NAMESPACE = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
-COVER_URL = 'http://leoville.tv/podcasts/coverart/%s600%s.jpg'
+COVER_URL = "http://leoville.tv/podcasts/coverart/%s600%s.jpg"
 
 DATE_FORMAT = "%a, %d %b %Y"
 ICON = "icon-default.png"
@@ -69,16 +69,31 @@ def Show(title, url, show_abbr, cover, media):
 	oc = ObjectContainer(title2=title, view_group='InfoList')
 
 	for episode in XML.ElementFromURL(url).xpath('//item'):
-		title = episode.xpath('./title')[0].text
-		episode_number = re.search('\s([0-9]+)(:|$)', title).group(1)
+		full_title = episode.xpath('./title')[0].text
+
+		try:
+			episode_title = re.split('\s(?=[0-9]+:)', full_title)[1]
+		except:
+			episode_title = full_title
+
+		episode_number = re.search('\s([0-9]+)(:|$)', full_title).group(1)
 		url = 'http://twit.tv/%s%s' % (show_abbr, episode_number)
-		summary = episode.xpath('./itunes:subtitle', namespaces=ITUNES_NAMESPACE)[0].text
+
+		try:
+			summary = episode.xpath('./itunes:subtitle', namespaces=ITUNES_NAMESPACE)[0].text
+		except:
+			summary = None
+
 		date = episode.xpath('./pubDate')[0].text
-		duration = episode.xpath('./itunes:duration', namespaces=ITUNES_NAMESPACE)[0].text
+
+		try:
+			duration = episode.xpath('./itunes:duration', namespaces=ITUNES_NAMESPACE)[0].text
+		except:
+			duration = None
 
 		oc.add(VideoClipObject(
 			url = url,
-			title = title,
+			title = episode_title,
 			summary = summary,
 			originally_available_at = Datetime.ParseDate(date).date(),
 			duration = TimeToMs(duration),
