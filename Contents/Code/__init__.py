@@ -29,9 +29,14 @@ def MainMenuVideo():
 
 	oc = ObjectContainer()
 
+	if Client.Platform in [ClientPlatform.MacOSX, ClientPlatform.Windows]:
+		live_url = "twit://livestream/webkit"
+	else:
+		live_url = "twit://livestream/hls"
+
 	# Add TWiT Live entry
 	oc.add(VideoClipObject(
-		url = "twit://livestream",
+		url = live_url,
 		title = "TWiT Live",
 		thumb = R('icon-twitlive.png')
 	))

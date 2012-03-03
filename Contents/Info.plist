@@ -41,12 +41,12 @@
 		<key>TWiT-Live</key>
 		<dict>
 			<key>URLPattern</key>
-			<string>twit://livestream</string>
+			<string>twit://livestream/(hls|webkit)</string>
 			<key>LinkedPlugin</key>
 			<string>com.plexapp.plugins.twitlive</string>
 			<key>TestURLs</key>
 			<array>
-				<string>twit://livestream</string>
+				<string>twit://livestream/hls</string>
 			</array>
 		</dict>
 	</dict>

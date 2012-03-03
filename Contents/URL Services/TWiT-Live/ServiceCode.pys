@@ -1,5 +1,6 @@
 HLS_URL_400 = 'http://twit.live-s.cdn.bitgravity.com/cdn-live-s1/_definst_/twit/live/low/playlist.m3u8'
 HLS_URL_1000 = 'http://twit.live-s.cdn.bitgravity.com/cdn-live-s1/_definst_/twit/live/high/playlist.m3u8'
+WEBKIT_URL = 'http://live.twit.tv/'
 
 ####################################################################################################
 def MetadataObjectForURL(url):
@@ -11,13 +12,24 @@ def MetadataObjectForURL(url):
 ####################################################################################################
 def MediaObjectsForURL(url):
 
-	return [
-		MediaObject(
-			parts = [PartObject(key=HTTPLiveStreamURL(HLS_URL_1000))],
-			bitrate = '1000'
-		),
-		MediaObject(
-			parts = [PartObject(key=HTTPLiveStreamURL(HLS_URL_400))],
-			bitrate = '400'
-		)
-	]
+	if url.endswith('webkit'):
+		return [
+			MediaObject(
+				parts = [PartObject(key=WebVideoURL(WEBKIT_URL))],
+				video_codec = None,
+				audio_codec = None
+			)
+		]
+	else:
+		return [
+			MediaObject(
+				parts = [PartObject(key=HTTPLiveStreamURL(HLS_URL_1000))],
+				container = 'mpegts',
+				bitrate = 1000
+			),
+			MediaObject(
+				parts = [PartObject(key=HTTPLiveStreamURL(HLS_URL_400))],
+				container = 'mpegts',
+				bitrate = 400
+			)
+		]
