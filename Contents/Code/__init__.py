@@ -11,8 +11,7 @@ ART = "art-default.jpg"
 ####################################################################################################
 def Start():
 
-	Plugin.AddPrefixHandler("/video/twittv", MainMenuVideo, "TWiT.TV", ICON, ART)
-#	Plugin.AddPrefixHandler("/music/twittv", MainMenuAudio, "TWiT.TV", ICON, ART)
+	Plugin.AddPrefixHandler("/video/twittv", MainMenu, "TWiT.TV", ICON, ART)
 
 	Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
 	Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
@@ -25,7 +24,7 @@ def Start():
 	HTTP.CacheTime = CACHE_1HOUR
 
 ####################################################################################################
-def MainMenuVideo():
+def MainMenu():
 
 	oc = ObjectContainer()
 
@@ -41,30 +40,14 @@ def MainMenuVideo():
 		thumb = R('icon-twitlive.png')
 	))
 
+	retired_shows = RetiredShows()
+
 	for feed in XML.ElementFromURL(SHOWS_XML, cacheTime=CACHE_1WEEK).xpath('//array/string'):
 		(title, video_feed, audio_feed, cover, x) = feed.text.split('|',4)
 
-		if video_feed != '':
+		if video_feed != '' and title not in retired_shows:
 			show_abbr = video_feed.split('.tv/',1)[1].split('_',1)[0]
 			oc.add(DirectoryObject(key=Callback(Show, title=title, url=video_feed, show_abbr=show_abbr, cover=cover, media='video'), title=title, thumb=Callback(Cover, url=cover, media='video', show_abbr=show_abbr)))
-
-	return oc
-
-####################################################################################################
-def MainMenuAudio():
-
-	oc = ObjectContainer()
-
-	for feed in XML.ElementFromURL(SHOWS_XML, cacheTime=CACHE_1WEEK).xpath('//array/string'):
-		(title, video_feed, audio_feed, cover, x) = feed.text.split('|',4)
-
-		if audio_feed != '':
-			if video_feed != '':
-				show_abbr = video_feed.split('.tv/',1)[1].split('_',1)[0]
-			else:
-				show_abbr = 'twit'
-
-			oc.add(DirectoryObject(key=Callback(Show, title=title, url=audio_feed, show_abbr=show_abbr, cover=cover, media='audio'), title=title, thumb=Callback(Cover, url=cover, media='audio', show_abbr=show_abbr)))
 
 	return oc
 
@@ -77,12 +60,25 @@ def Show(title, url, show_abbr, cover, media):
 		full_title = episode.xpath('./title')[0].text
 
 		try:
-			episode_title = re.split('\s(?=[0-9]+:)', full_title)[1]
+			episode_title = re.split('\s(?=[0-9]+:)', full_title, 1)[1]
 		except:
 			episode_title = full_title
 
 		episode_number = re.search('\s([0-9]+)(:|$)', full_title).group(1)
-		url = 'http://twit.tv/%s%s' % (show_abbr, episode_number)
+
+		# Not every show has short urls available, fix the ones that don't
+		if show_abbr == 'floss':
+			show_url = 'show/floss-weekly/'
+		elif show_abbr == 'htg':
+			show_url = 'show/home-theater-geeks/'
+		elif show_abbr == 'ipad':
+			show_url = 'show/ipad-today/'
+		elif show_abbr == 'natn':
+			show_url = 'show/the-social-hour/'
+		else:
+			show_url = show_abbr
+
+		url = 'http://twit.tv/%s%s' % (show_url, episode_number)
 
 		try:
 			summary = episode.xpath('./itunes:subtitle', namespaces=ITUNES_NAMESPACE)[0].text
@@ -137,3 +133,12 @@ def TimeToMs(timecode):
 		pass
 
 	return seconds * 1000
+
+####################################################################################################
+def RetiredShows():
+
+	page = HTML.ElementFromURL('http://twit.tv/shows', cacheTime=CACHE_1MONTH)
+	shows = page.xpath('//div[@id="quicktabs_tabpage_3_1"]//a/text()')
+	shows.append('Net @ Night')
+
+	return shows
