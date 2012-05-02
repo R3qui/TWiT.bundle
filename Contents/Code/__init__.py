@@ -28,10 +28,12 @@ def MainMenu():
 
 	oc = ObjectContainer()
 
-	if Client.Platform in [ClientPlatform.MacOSX, ClientPlatform.Windows]:
-		live_url = "twit://livestream/webkit"
-	else:
-		live_url = "twit://livestream/hls"
+#	if Client.Platform in [ClientPlatform.MacOSX, ClientPlatform.Windows]:
+#		live_url = "twit://livestream/webkit"
+#	else:
+#		live_url = "twit://livestream/hls"
+
+	live_url = "twit://livestream/webkit"
 
 	# Add TWiT Live entry
 	oc.add(VideoClipObject(
