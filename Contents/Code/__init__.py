@@ -59,6 +59,9 @@ def Show(title, url, show_abbr, cover, media):
 	oc = ObjectContainer(title2=title, view_group='InfoList')
 
 	for episode in XML.ElementFromURL(url).xpath('//item'):
+		if not episode.xpath('./enclosure')[0].get('type').startswith('video/'):
+			continue
+
 		full_title = episode.xpath('./title')[0].text
 
 		try:
