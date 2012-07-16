@@ -1,6 +1,6 @@
 import re
 
-SHOWS_XML = "http://static.twit.tv/rssFeeds.plist"
+SHOWS_XML = "http://static.twit.tv/ShiftKeySoftware/rssFeeds.plist"
 ITUNES_NAMESPACE = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
 COVER_URL = "http://leoville.tv/podcasts/coverart/%s600%s.jpg"
 
