@@ -144,6 +144,6 @@ def RetiredShows():
 
 	page = HTML.ElementFromURL('http://twit.tv/shows', cacheTime=CACHE_1MONTH)
 	shows = page.xpath('//div[@id="quicktabs_tabpage_3_1"]//a/text()')
-	shows.extend(['Net @ Night', 'THT: Tech History Today'])
+	shows.extend(['FourCast Weekly', 'Game On', 'Net @ Night', 'THT: Tech History Today'])
 
 	return shows
