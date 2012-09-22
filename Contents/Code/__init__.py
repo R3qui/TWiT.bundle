@@ -1,5 +1,3 @@
-import re
-
 SHOWS_XML = "http://static.twit.tv/ShiftKeySoftware/rssFeeds.plist"
 ITUNES_NAMESPACE = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
 COVER_URL = "http://leoville.tv/podcasts/coverart/%s600%s.jpg"
@@ -7,6 +5,9 @@ COVER_URL = "http://leoville.tv/podcasts/coverart/%s600%s.jpg"
 DATE_FORMAT = "%a, %d %b %Y"
 ICON = "icon-default.png"
 ART = "art-default.jpg"
+
+RE_EP_TITLE = Regex('\s(?=[0-9]+:)')
+RE_EP_NUMBER = Regex('\s([0-9]+)(:|$)')
 
 ####################################################################################################
 def Start():
@@ -64,11 +65,11 @@ def Show(title, url, show_abbr, cover, media):
 		full_title = episode.xpath('./title')[0].text
 
 		try:
-			episode_title = re.split('\s(?=[0-9]+:)', full_title, 1)[1]
+			episode_title = RE_EP_TITLE.split(full_title, 1)[1]
 		except:
 			episode_title = full_title
 
-		episode_number = re.search('\s([0-9]+)(:|$)', full_title).group(1)
+		episode_number = RE_EP_NUMBER.search(full_title).group(1)
 
 		# Not every show has short urls available, fix the ones that don't
 		if show_abbr == 'floss':
