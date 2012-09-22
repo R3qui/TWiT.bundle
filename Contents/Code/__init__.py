@@ -10,9 +10,6 @@ ART = "art-default.jpg"
 
 ####################################################################################################
 def Start():
-
-	Plugin.AddPrefixHandler("/video/twittv", MainMenu, "TWiT.TV", ICON, ART)
-
 	Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
 	Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
 
@@ -24,6 +21,7 @@ def Start():
 	HTTP.CacheTime = CACHE_1HOUR
 
 ####################################################################################################
+@handler('/video/twittv', "TWiT.TV", art = ART)
 def MainMenu():
 
 	oc = ObjectContainer()
@@ -54,6 +52,7 @@ def MainMenu():
 	return oc
 
 ####################################################################################################
+@route('/video/twittv/show', allow_sync = True)
 def Show(title, url, show_abbr, cover, media):
 
 	oc = ObjectContainer(title2=title, view_group='InfoList')
