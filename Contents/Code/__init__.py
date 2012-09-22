@@ -11,6 +11,7 @@ RE_EP_NUMBER = Regex('\s([0-9]+)(:|$)')
 
 ####################################################################################################
 def Start():
+
 	Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
 	Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
 
@@ -22,7 +23,7 @@ def Start():
 	HTTP.CacheTime = CACHE_1HOUR
 
 ####################################################################################################
-@handler('/video/twittv', "TWiT.TV", art = ART)
+@handler('/video/twittv', "TWiT.TV", art = ART, thumb = ICON)
 def MainMenu():
 
 	oc = ObjectContainer()
