@@ -30,11 +30,15 @@ def MainMenu():
 	oc = ObjectContainer()
 
 	# Add TWiT Live entry
-	oc.add(VideoClipObject(
-		url = LIVE_URL,
-		title = "Watch TWiT Live",
-		thumb = R('icon-twitlive.png')
-	))
+	try:
+		oc.add(VideoClipObject(
+			url = LIVE_URL,
+			title = "Watch TWiT Live",
+			thumb = R('icon-twitlive.png')
+		))
+	except:
+		Log('Adding live stream item failed.')
+		pass
 
 	retired_shows = RetiredShows()
 
