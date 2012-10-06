@@ -1,6 +1,7 @@
 SHOWS_XML = "http://static.twit.tv/ShiftKeySoftware/rssFeeds.plist"
 ITUNES_NAMESPACE = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
 COVER_URL = "http://leoville.tv/podcasts/coverart/%s600%s.jpg"
+LIVE_URL = "http://ustream.tv/leolaporte"
 
 DATE_FORMAT = "%a, %d %b %Y"
 ICON = "icon-default.png"
@@ -28,17 +29,10 @@ def MainMenu():
 
 	oc = ObjectContainer()
 
-#	if Client.Platform in [ClientPlatform.MacOSX, ClientPlatform.Windows]:
-#		live_url = "twit://livestream/webkit"
-#	else:
-#		live_url = "twit://livestream/hls"
-
-	live_url = "twit://livestream/webkit"
-
 	# Add TWiT Live entry
 	oc.add(VideoClipObject(
-		url = live_url,
-		title = "TWiT Live",
+		url = LIVE_URL,
+		title = "Watch TWiT Live",
 		thumb = R('icon-twitlive.png')
 	))
 
