@@ -86,6 +86,7 @@ def Show(title, url, show_abbr, cover, media):
 
 		try:
 			summary = episode.xpath('./itunes:subtitle', namespaces=ITUNES_NAMESPACE)[0].text
+			summary = String.StripTags(summary)
 		except:
 			summary = None
 
@@ -96,9 +97,11 @@ def Show(title, url, show_abbr, cover, media):
 		except:
 			duration = None
 
-		oc.add(VideoClipObject(
+		oc.add(EpisodeObject(
 			url = url,
+			show = title,
 			title = episode_title,
+			absolute_index = int(episode_number),
 			summary = summary,
 			originally_available_at = Datetime.ParseDate(date).date(),
 			duration = TimeToMs(duration),
