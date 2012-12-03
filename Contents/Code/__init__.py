@@ -1,7 +1,7 @@
 SHOWS_XML = "http://static.twit.tv/ShiftKeySoftware/rssFeeds.plist"
 ITUNES_NAMESPACE = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
 COVER_URL = "http://leoville.tv/podcasts/coverart/%s600%s.jpg"
-LIVE_URL = "http://www.ustream.tv/leolaporte"
+LIVE_URL = "http://iphone-streaming.ustream.tv/ustreamVideo/1524/streams/live/playlist.m3u8"
 
 DATE_FORMAT = "%a, %d %b %Y"
 ICON = "icon-default.png"
@@ -30,15 +30,7 @@ def MainMenu():
 	oc = ObjectContainer()
 
 	# Add TWiT Live entry
-	try:
-		oc.add(VideoClipObject(
-			url = LIVE_URL,
-			title = "Watch TWiT Live",
-			thumb = R('icon-twitlive.png')
-		))
-	except:
-		Log('Adding live stream item failed.')
-		pass
+	oc.add(LiveStream())
 
 	retired_shows = RetiredShows()
 
@@ -149,3 +141,23 @@ def RetiredShows():
 	shows.extend(['FourCast Weekly', 'Game On', 'Net @ Night', 'THT: Tech History Today'])
 
 	return shows
+
+####################################################################################################
+def LiveStream(include_container=False):
+
+	vco = VideoClipObject(
+		key = Callback(LiveStream, include_container=True),
+		rating_key = LIVE_URL,
+		title = 'Watch TWiT Live',
+		thumb = R('icon-twitlive.png'),
+		items = [
+			MediaObject(
+				parts = [PartObject(key=HTTPLiveStreamURL(LIVE_URL))]
+			)
+		]
+	)
+
+	if include_container:
+		return ObjectContainer(objects=[vco])
+	else:
+		return vco
