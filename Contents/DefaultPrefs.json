@@ -1,0 +1,15 @@
+[
+	{
+		"id": "hls_provider",
+		"type": "enum",
+		"label": "Live Stream Provider",
+		"values": [
+			"BitGravity 400 Kbps",
+			"BitGravity 1 Mbps",
+			"Ustream",
+			"Justin.tv",
+			"Flosoft.biz"
+		],
+		"default": "Ustream"
+	}
+]

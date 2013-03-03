@@ -1,7 +1,13 @@
 SHOWS_XML = "http://static.twit.tv/ShiftKeySoftware/rssFeeds.plist"
 ITUNES_NAMESPACE = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
 COVER_URL = "http://leoville.tv/podcasts/coverart/%s600%s.jpg"
-LIVE_URL = "http://iphone-streaming.ustream.tv/ustreamVideo/1524/streams/live/playlist.m3u8"
+LIVE_URLS = {
+	'BitGravity 400 Kbps': 'http://twit.live-s.cdn.bitgravity.com/cdn-live-s1/_definst_/twit/live/low/playlist.m3u8',
+	'BitGravity 1 Mbps': 'http://twit.live-s.cdn.bitgravity.com/cdn-live-s1/_definst_/twit/live/high/playlist.m3u8',
+	'Ustream': 'http://iphone-streaming.ustream.tv/ustreamVideo/1524/streams/live/playlist.m3u8',
+	'Justin.tv': 'http://usher.justin.tv/stream/multi_playlist/twit.m3u8',
+	'Flosoft.biz': 'http://hls.twit.tv:1935/flosoft/smil:twitStream.smil/playlist.m3u8'
+}
 
 DATE_FORMAT = "%a, %d %b %Y"
 ICON = "icon-default.png"
@@ -27,10 +33,10 @@ def Start():
 @handler('/video/twittv', "TWiT.TV", art = ART, thumb = ICON)
 def MainMenu():
 
-	oc = ObjectContainer()
+	oc = ObjectContainer(no_cache=True)
 
 	# Add TWiT Live entry
-	oc.add(LiveStream())
+	oc.add(LiveStream(hls_provider=Prefs['hls_provider']))
 
 	retired_shows = RetiredShows()
 
@@ -143,16 +149,18 @@ def RetiredShows():
 	return shows
 
 ####################################################################################################
-def LiveStream(include_container=False):
+def LiveStream(hls_provider='Ustream', include_container=False):
 
 	vco = VideoClipObject(
-		key = Callback(LiveStream, include_container=True),
-		rating_key = LIVE_URL,
+		key = Callback(LiveStream, hls_provider=hls_provider, include_container=True),
+		rating_key = LIVE_URLS[hls_provider],
 		title = 'Watch TWiT Live',
 		thumb = R('icon-twitlive.png'),
 		items = [
 			MediaObject(
-				parts = [PartObject(key=HTTPLiveStreamURL(LIVE_URL))]
+				parts = [
+					PartObject(key=HTTPLiveStreamURL(LIVE_URLS[hls_provider]))
+				]
 			)
 		]
 	)
