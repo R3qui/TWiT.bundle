@@ -10,27 +10,17 @@ LIVE_URLS = {
 }
 
 DATE_FORMAT = "%a, %d %b %Y"
-ICON = "icon-default.png"
-ART = "art-default.jpg"
-
 RE_EP_TITLE = Regex('\s(?=[0-9]+:)')
 RE_EP_NUMBER = Regex('\s([0-9]+)(:|$)')
 
 ####################################################################################################
 def Start():
 
-	Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
-	Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
-
-	ObjectContainer.art = R(ART)
 	ObjectContainer.title1 = "TWiT.TV"
-	ObjectContainer.view_group = "List"
-	DirectoryItem.thumb = R(ICON)
-
 	HTTP.CacheTime = CACHE_1HOUR
 
 ####################################################################################################
-@handler('/video/twittv', "TWiT.TV", art = ART, thumb = ICON)
+@handler('/video/twittv', "TWiT.TV")
 def MainMenu():
 
 	oc = ObjectContainer(no_cache=True)
@@ -45,7 +35,14 @@ def MainMenu():
 
 		if video_feed != '' and title not in retired_shows:
 			show_abbr = video_feed.split('.tv/',1)[1].split('_',1)[0]
-			oc.add(DirectoryObject(key=Callback(Show, title=title, url=video_feed, show_abbr=show_abbr, cover=cover, media='video'), title=title, thumb=Callback(Cover, url=cover, media='video', show_abbr=show_abbr)))
+
+			oc.add(DirectoryObject(
+				key = Callback(Show, title=title, url=video_feed, show_abbr=show_abbr, cover=cover, media='video'),
+				title = title,
+				thumb = Resource.ContentsOfURLWithFallback(url=[COVER_URL % (show_abbr, 'video'), cover])
+			))
+
+	oc.add(PrefsObject(title='Preferences...'))
 
 	return oc
 
@@ -53,7 +50,7 @@ def MainMenu():
 @route('/video/twittv/show', allow_sync = True)
 def Show(title, url, show_abbr, cover, media):
 
-	oc = ObjectContainer(title2=title, view_group='InfoList')
+	oc = ObjectContainer(title2=title)
 
 	for episode in XML.ElementFromURL(url).xpath('//item'):
 		if not episode.xpath('./enclosure')[0].get('type').startswith('video/'):
@@ -103,25 +100,10 @@ def Show(title, url, show_abbr, cover, media):
 			summary = summary,
 			originally_available_at = Datetime.ParseDate(date).date(),
 			duration = TimeToMs(duration),
-			thumb = Callback(Cover, url=cover, media=media, show_abbr=show_abbr)
+			thumb = Resource.ContentsOfURLWithFallback(url=[COVER_URL % (show_abbr, media), cover])
 		))
 
 	return oc
-
-####################################################################################################
-def Cover(url, media, show_abbr):
-
-	try:
-		data = HTTP.Request(COVER_URL % (show_abbr, media), cacheTime=CACHE_1MONTH).content
-		return DataObject(data, 'image/jpeg')
-	except:
-		try:
-			data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
-			return DataObject(data, 'image/jpeg')
-		except:
-			pass
-
-	return Redirect(R(ICON))
 
 ####################################################################################################
 def TimeToMs(timecode):
