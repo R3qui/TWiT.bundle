@@ -63,7 +63,10 @@ def Show(title, url, show_abbr, cover, media):
 		except:
 			episode_title = full_title
 
-		episode_number = RE_EP_NUMBER.search(full_title).group(1)
+		try:
+			episode_number = RE_EP_NUMBER.search(full_title).group(1)
+		except:
+			continue
 
 		# Not every show has short urls available, fix the ones that don't
 		if show_abbr == 'floss':
@@ -126,7 +129,7 @@ def RetiredShows():
 
 	page = HTML.ElementFromURL('http://twit.tv/shows', cacheTime=CACHE_1MONTH)
 	shows = page.xpath('//div[@id="quicktabs_tabpage_3_1"]//a/text()')
-	shows.extend(['FourCast Weekly', 'Game On', 'Net @ Night', 'THT: Tech History Today'])
+	shows.extend(['FourCast Weekly', 'Game On', 'Net @ Night', 'THT: Tech History Today', 'Recent TWiT VIDEO'])
 
 	return shows
 
