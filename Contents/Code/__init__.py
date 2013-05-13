@@ -143,6 +143,7 @@ def LiveStream(hls_provider='Ustream', include_container=False):
 		thumb = R('icon-twitlive.png'),
 		items = [
 			MediaObject(
+				video_resolution = 'sd',
 				parts = [
 					PartObject(key=HTTPLiveStreamURL(LIVE_URLS[hls_provider]))
 				]
