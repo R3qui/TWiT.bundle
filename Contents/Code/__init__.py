@@ -13,6 +13,8 @@ DATE_FORMAT = "%a, %d %b %Y"
 RE_EP_TITLE = Regex('\s(?=[0-9]+:)')
 RE_EP_NUMBER = Regex('\s([0-9]+)(:|$)')
 
+HLS_COMPAT = ('iOS', 'Android', 'Roku', 'Safari', 'MacOSX', 'Windows')
+
 ####################################################################################################
 def Start():
 
@@ -26,7 +28,8 @@ def MainMenu():
 	oc = ObjectContainer(no_cache=True)
 
 	# Add TWiT Live entry
-	oc.add(LiveStream(hls_provider=Prefs['hls_provider']))
+	if Client.Platform in HLS_COMPAT:
+		oc.add(LiveStream(hls_provider=Prefs['hls_provider']))
 
 	retired_shows = RetiredShows()
 
@@ -42,7 +45,8 @@ def MainMenu():
 				thumb = Resource.ContentsOfURLWithFallback(url=[COVER_URL % (show_abbr, 'video'), cover])
 			))
 
-	oc.add(PrefsObject(title='Preferences...'))
+	if Client.Platform in HLS_COMPAT:
+		oc.add(PrefsObject(title='Preferences...'))
 
 	return oc
 
