@@ -12,6 +12,7 @@ LIVE_URLS = {
 DATE_FORMAT = "%a, %d %b %Y"
 RE_EP_TITLE = Regex('\s(?=[0-9]+:)')
 RE_EP_NUMBER = Regex('\s([0-9]+)(:|$)')
+RE_EP_URL = Regex('^http://twit\.tv/[^/]+/\d+$')
 
 HLS_COMPAT = ('iOS', 'Android', 'Roku', 'Safari', 'MacOSX', 'Windows', 'Plex Home Theater')
 
@@ -57,10 +58,10 @@ def Show(title, url, show_abbr, cover, media):
 	oc = ObjectContainer(title2=title)
 
 	for episode in XML.ElementFromURL(url).xpath('//item'):
-		if not episode.xpath('./enclosure')[0].get('type').startswith('video/'):
+		if not episode.xpath('./enclosure/@type')[0].startswith('video/'):
 			continue
 
-		full_title = episode.xpath('./title')[0].text
+		full_title = episode.xpath('./title/text()')[0]
 
 		try:
 			episode_title = RE_EP_TITLE.split(full_title, 1)[1]
@@ -72,30 +73,34 @@ def Show(title, url, show_abbr, cover, media):
 		except:
 			continue
 
-		# Not every show has short urls available, fix the ones that don't
-		if show_abbr == 'floss':
-			show_url = 'show/floss-weekly/'
-		elif show_abbr == 'htg':
-			show_url = 'show/home-theater-geeks/'
-		elif show_abbr == 'ipad':
-			show_url = 'show/ipad-today/'
-		elif show_abbr == 'natn':
-			show_url = 'show/the-social-hour/'
-		else:
-			show_url = show_abbr
+		url = episode.xpath('./comments/text()')[0]
 
-		url = 'http://twit.tv/%s%s' % (show_url, episode_number)
+		if not RE_EP_URL.search(url):
+			# Not every show has short urls available, fix the ones that don't
+			if show_abbr == 'floss':
+				show_url = 'show/floss-weekly'
+			elif show_abbr == 'htg':
+				show_url = 'show/home-theater-geeks'
+			elif show_abbr == 'ipad':
+				show_url = 'show/ipad-today'
+			elif show_abbr == 'natn':
+				show_url = 'show/the-social-hour'
+			else:
+				show_url = show_abbr
+
+			url = 'http://twit.tv/%s/%s' % (show_url, episode_number)
 
 		try:
-			summary = episode.xpath('./itunes:subtitle', namespaces=ITUNES_NAMESPACE)[0].text
+			summary = episode.xpath('./itunes:subtitle/text()', namespaces=ITUNES_NAMESPACE)[0]
 			summary = String.StripTags(summary)
 		except:
 			summary = None
 
-		date = episode.xpath('./pubDate')[0].text
+		date = episode.xpath('./pubDate/text()')[0]
 
 		try:
-			duration = episode.xpath('./itunes:duration', namespaces=ITUNES_NAMESPACE)[0].text
+			duration = episode.xpath('./itunes:duration/text()', namespaces=ITUNES_NAMESPACE)[0]
+			duration = Datetime.MillisecondsFromString(duration)
 		except:
 			duration = None
 
@@ -106,27 +111,11 @@ def Show(title, url, show_abbr, cover, media):
 			absolute_index = int(episode_number),
 			summary = summary,
 			originally_available_at = Datetime.ParseDate(date).date(),
-			duration = TimeToMs(duration),
+			duration = duration,
 			thumb = Resource.ContentsOfURLWithFallback(url=[COVER_URL % (show_abbr, media), cover])
 		))
 
 	return oc
-
-####################################################################################################
-def TimeToMs(timecode):
-
-	seconds = 0
-
-	try:
-		duration = timecode.split(':')
-		duration.reverse()
-
-		for i in range(0, len(duration)):
-			seconds += int(duration[i]) * (60**i)
-	except:
-		pass
-
-	return seconds * 1000
 
 ####################################################################################################
 def RetiredShows():
