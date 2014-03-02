@@ -91,7 +91,7 @@ def Show(title, url, show_abbr, cover, media):
 			url = 'http://twit.tv/%s/%s' % (show_url, episode_number)
 
 		try:
-			summary = episode.xpath('./itunes:subtitle/text()', namespaces=ITUNES_NAMESPACE)[0]
+			summary = episode.xpath('./itunes:summary/text()', namespaces=ITUNES_NAMESPACE)[0]
 			summary = String.StripTags(summary)
 		except:
 			summary = None
