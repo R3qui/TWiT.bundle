@@ -46,8 +46,7 @@ def MainMenu():
 				thumb = Resource.ContentsOfURLWithFallback(url=[COVER_URL % (show_abbr, 'video'), cover])
 			))
 
-	if Client.Platform in HLS_COMPAT:
-		oc.add(PrefsObject(title='Preferences...'))
+	oc.add(PrefsObject(title='Preferences...'))
 
 	return oc
 
