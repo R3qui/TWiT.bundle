@@ -14,7 +14,7 @@ RE_EP_TITLE = Regex('\s(?=[0-9]+:)')
 RE_EP_NUMBER = Regex('\s([0-9]+)(:|$)')
 RE_EP_URL = Regex('^http://twit\.tv/[^/]+/\d+$')
 
-HLS_COMPAT = ('iOS', 'Android', 'Roku', 'Safari', 'MacOSX', 'Windows', 'Plex Home Theater')
+HLS_COMPAT = ('iOS', 'Android', 'Roku', 'Safari', 'MacOSX', 'Windows', 'Plex Home Theater', 'Samsung')
 
 ####################################################################################################
 def Start():
