@@ -5,7 +5,6 @@ LIVE_URLS = {
 	'BitGravity 400 Kbps': 'http://twit.live-s.cdn.bitgravity.com/cdn-live-s1/_definst_/twit/live/low/playlist.m3u8',
 	'BitGravity 1 Mbps': 'http://twit.live-s.cdn.bitgravity.com/cdn-live-s1/_definst_/twit/live/high/playlist.m3u8',
 	'Ustream': 'http://iphone-streaming.ustream.tv/ustreamVideo/1524/streams/live/playlist.m3u8',
-	'Justin.tv': 'http://usher.justin.tv/stream/multi_playlist/twit.m3u8',
 	'Flosoft.biz': 'http://hls.twit.tv:1935/flosoft/smil:twitStream.smil/playlist.m3u8'
 }
 
@@ -13,8 +12,6 @@ DATE_FORMAT = "%a, %d %b %Y"
 RE_EP_TITLE = Regex('\s(?=[0-9]+:)')
 RE_EP_NUMBER = Regex('\s([0-9]+)(:|$)')
 RE_EP_URL = Regex('^http://twit\.tv/[^/]+/\d+$')
-
-HLS_COMPAT = ('iOS', 'Android', 'Roku', 'Safari', 'MacOSX', 'Windows', 'Plex Home Theater', 'Samsung')
 
 ####################################################################################################
 def Start():
@@ -28,9 +25,8 @@ def MainMenu():
 
 	oc = ObjectContainer(no_cache=True)
 
-	# Add TWiT Live entry
-	if Client.Platform in HLS_COMPAT:
-		oc.add(LiveStream(hls_provider=Prefs['hls_provider']))
+	# TWiT Live
+	oc.add(LiveStream(hls_provider=Prefs['hls_provider']))
 
 	retired_shows = RetiredShows()
 

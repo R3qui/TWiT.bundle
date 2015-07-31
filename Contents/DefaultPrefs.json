@@ -7,9 +7,8 @@
 			"BitGravity 400 Kbps",
 			"BitGravity 1 Mbps",
 			"Ustream",
-			"Justin.tv",
 			"Flosoft.biz"
 		],
-		"default": "Ustream"
+		"default": "BitGravity 1 Mbps"
 	}
 ]
