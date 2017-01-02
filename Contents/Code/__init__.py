@@ -4,9 +4,6 @@ LIVE_URLS = {
 	'Flosoft.biz': 'http://hls.twit.tv/flosoft/smil:twitStream.smil/playlist.m3u8'
 }
 
-RE_EP_TITLE = Regex('\s(?=[0-9]+:)')
-RE_EP_NUMBER = Regex('\s([0-9]+)(:|$)')
-
 ####################################################################################################
 def Start():
 
@@ -51,19 +48,8 @@ def Show(title, url, cover):
 		if not episode.xpath('./enclosure/@type')[0].startswith('video/'):
 			continue
 
-		full_title = episode.xpath('./title/text()')[0]
-
-		try:
-			episode_title = RE_EP_TITLE.split(full_title, 1)[1]
-		except:
-			episode_title = full_title
-
-		try:
-			episode_number = RE_EP_NUMBER.search(full_title).group(1)
-		except:
-			continue
-
 		url = episode.xpath('./comments/text()')[0]
+		title = episode.xpath('./title/text()')[0]
 
 		try:
 			summary = episode.xpath('./itunes:summary/text()', namespaces=ITUNES_NAMESPACE)[0]
@@ -79,11 +65,9 @@ def Show(title, url, cover):
 		except:
 			duration = None
 
-		oc.add(EpisodeObject(
+		oc.add(VideoClipObject(
 			url = url,
-			show = title,
-			title = episode_title,
-			absolute_index = int(episode_number),
+			title = title,
 			summary = summary,
 			originally_available_at = Datetime.ParseDate(date).date(),
 			duration = duration,
