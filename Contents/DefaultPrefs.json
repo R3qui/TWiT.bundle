@@ -4,9 +4,6 @@
 		"type": "enum",
 		"label": "Live Stream Provider",
 		"values": [
-			"BitGravity 400 Kbps",
-			"BitGravity 1 Mbps",
-			"Ustream",
 			"Flosoft.biz"
 		],
 		"default": "BitGravity 1 Mbps"
