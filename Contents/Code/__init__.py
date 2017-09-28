@@ -1,7 +1,7 @@
 SHOWS_XML = "http://static.twit.tv/ShiftKeySoftware/rssFeeds.plist"
 ITUNES_NAMESPACE = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
 LIVE_URLS = {
-	'Flosoft.biz': 'http://hls.twit.tv/flosoft/smil:twitStream.smil/playlist.m3u8'
+	'UStream': 'http://iphone-streaming.ustream.tv/uhls/1524/streams/live/iphone/playlist.m3u8'
 }
 
 ####################################################################################################
@@ -88,7 +88,7 @@ def RetiredShows():
 def LiveStream(hls_provider='Flosoft.biz', include_container=False):
 
 	if hls_provider not in LIVE_URLS:
-		hls_provider = 'Flosoft.biz'
+		hls_provider = 'UStream'
 
 	vco = VideoClipObject(
 		key = Callback(LiveStream, hls_provider=hls_provider, include_container=True),
