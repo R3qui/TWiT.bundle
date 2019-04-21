@@ -1,7 +1,7 @@
 SHOWS_XML = "http://static.twit.tv/ShiftKeySoftware/rssFeeds.plist"
 ITUNES_NAMESPACE = {'itunes':'http://www.itunes.com/dtds/podcast-1.0.dtd'}
 LIVE_URLS = {
-	'UStream': 'http://iphone-streaming.ustream.tv/uhls/1524/streams/live/iphone/playlist.m3u8'
+	'IBMCloudVideo': 'http://c742ecbd-lp-omega.ums.services.video.ibm.com/playlist/directhls/channel/1524/playlist.m3u8'
 }
 
 ####################################################################################################
@@ -85,10 +85,10 @@ def RetiredShows():
 	return shows
 
 ####################################################################################################
-def LiveStream(hls_provider='Flosoft.biz', include_container=False):
+def LiveStream(hls_provider='IBMCloudVideo', include_container=False):
 
 	if hls_provider not in LIVE_URLS:
-		hls_provider = 'UStream'
+		hls_provider = 'IBMCloudVideo'
 
 	vco = VideoClipObject(
 		key = Callback(LiveStream, hls_provider=hls_provider, include_container=True),
@@ -97,7 +97,7 @@ def LiveStream(hls_provider='Flosoft.biz', include_container=False):
 		thumb = R('icon-twitlive.png'),
 		items = [
 			MediaObject(
-				video_resolution = '480',
+				video_resolution = '720',
 				parts = [
 					PartObject(key=HTTPLiveStreamURL(LIVE_URLS[hls_provider]))
 				]
